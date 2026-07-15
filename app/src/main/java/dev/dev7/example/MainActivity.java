@@ -43,7 +43,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
-            V2rayController.init(this, R.drawable.ic_launcher, "V2ray Android");
+            // اسم پروژه رو اینجا هم به نکس‌گذر تغییر دادیم
+            V2rayController.init(this, R.drawable.ic_launcher, "NexGozar");
             connection = findViewById(R.id.btn_connection);
             connection_speed = findViewById(R.id.connection_speed);
             connection_time = findViewById(R.id.connection_duration);
@@ -56,27 +57,25 @@ public class MainActivity extends AppCompatActivity {
         }
 
         core_version.setText(V2rayController.getCoreVersion());
-        // initialize shared preferences for save or reload default config
         sharedPreferences = getSharedPreferences("conf", MODE_PRIVATE);
-        // reload previous config to edit text
         v2ray_config.setText(sharedPreferences.getString("v2ray_config", getDefaultConfig()));
+        
         connection.setOnClickListener(view -> {
             sharedPreferences.edit().putString("v2ray_config", v2ray_config.getText().toString()).apply();
             if (V2rayController.getConnectionState() == V2rayConstants.CONNECTION_STATES.DISCONNECTED) {
-                V2rayController.startV2ray(this, "Test Server", v2ray_config.getText().toString(), null);
+                // اسم سرور موقع اتصال رو گذاشتیم NexGozar Server
+                V2rayController.startV2ray(this, "NexGozar Server", v2ray_config.getText().toString(), null);
             } else {
                 V2rayController.stopV2ray(this);
             }
         });
 
 
-        // Check the connection delay of connected config.
         connected_server_delay.setOnClickListener(view -> {
             connected_server_delay.setText("connected server delay : measuring...");
-            // Don`t forget to do ui jobs in ui thread!
             V2rayController.getConnectedV2rayServerDelay(this, delayResult -> runOnUiThread(() -> connected_server_delay.setText("connected server delay : " + delayResult + "ms")));
         });
-        // Another way to check the connection delay of a config without connecting to it.
+        
         server_delay.setOnClickListener(view -> {
             server_delay.setText("server delay : measuring...");
             new Handler().postDelayed(() -> server_delay.setText("server delay : " + V2rayController.getV2rayServerDelay(v2ray_config.getText().toString()) + "ms"), 200);
@@ -87,11 +86,9 @@ public class MainActivity extends AppCompatActivity {
             connection_mode.setText("connection mode : " + V2rayConfigs.serviceMode.toString());
         });
 
-        // Check connection state when activity launch
         switch (V2rayController.getConnectionState()) {
             case CONNECTED:
                 connection.setText("CONNECTED");
-                // check  connection latency
                 connected_server_delay.callOnClick();
                 break;
             case DISCONNECTED:
@@ -103,10 +100,7 @@ public class MainActivity extends AppCompatActivity {
             default:
                 break;
         }
-        //I tested several different ways to send information from the connection process side
-        // to other places (such as interfaces, AIDL and singleton ,...) apparently the best way
-        // to send information is broadcast.
-        // So v2ray library will be broadcast information with action V2RAY_CONNECTION_INFO.
+
         v2rayBroadCastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -140,8 +134,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // اینجاست که کانفیگ خودت رو به صورت پیش‌فرض می‌ذاری داخل برنامه
     public static String getDefaultConfig() {
-        return "";
+        return "vless://your-config-here...";
     }
 
 
